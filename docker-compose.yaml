@@ -1,0 +1,63 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80" # NGINX HTTP server
+      - "8081:8081" # NGINX status page
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro # Mount custom NGINX config
+      - ./logs:/var/log/nginx # Log directory
+    networks:
+      - monitoring
+
+  nginx_exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx_exporter
+    command:
+      - -nginx.scrape-uri=http://nginx:8081/nginx_status
+    ports:
+      - "9113:9113" # Port for NGINX exporter
+    depends_on:
+      - nginx
+    networks:
+      - monitoring
+
+  nginxlog_exporter:
+    image: quay.io/martinhelmich/prometheus-nginxlog-exporter:latest
+    container_name: nginxlog_exporter
+    command:
+      - "--config-file=/etc/nginxlog-exporter/config.yml"
+    ports:
+      - "4040:4040" # Prometheus metrics endpoint for nginxlog-exporter
+    volumes:
+      - ./logs:/var/log/nginx # Log directory
+      - ./nginxlog-exporter-config.yml:/etc/nginxlog-exporter/config.yml
+    depends_on:
+      - nginx
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090" # Prometheus web UI
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000" # Grafana web UI
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
