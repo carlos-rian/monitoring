@@ -32,7 +32,7 @@ services:
       - "4040:4040" # Prometheus metrics endpoint for nginxlog-exporter
     volumes:
       - ./logs:/var/log/nginx # Log directory
-      - ./nginxlog-exporter-config.yml:/etc/nginxlog-exporter/config.yml
+      - ./nginxlog-exporter-config.yml:/etc/nginxlog-exporter/config.yml # Configuration file
     depends_on:
       - nginx
     networks:
@@ -44,7 +44,7 @@ services:
     ports:
       - "9090:9090" # Prometheus web UI
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Prometheus configuration file
     networks:
       - monitoring
 
